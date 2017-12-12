@@ -53,6 +53,13 @@ Supported SRC_URI options are:
    For local git:// urls to use the current branch HEAD as the revision for use with
    AUTOREV. Implies nobranch.
 
+- noshared
+   When unpacking do not clone with the parameter "--shared". This option will
+   allow the unpacked copy to work stand-alone i.e. if your recipe runs in a
+   chroot where the "alternate" can not be found. Setting this will increase
+   the unpack-time and the disk-usage.
+   The default is "0", set noshared=1 if needed.
+
 """
 
 #Copyright (C) 2005 Richard Purdie
@@ -159,6 +166,8 @@ class Git(FetchMethod):
 
         ud.nobranch = ud.parm.get("nobranch","0") == "1"
 
+        ud.noshared = ud.parm.get("noshared","0") == "1"
+
         # usehead implies nobranch
         ud.usehead = ud.parm.get("usehead","0") == "1"
         if ud.usehead:
@@ -176,7 +185,9 @@ class Git(FetchMethod):
         if len(branches) != len(ud.names):
             raise bb.fetch2.ParameterError("The number of name and branch parameters is not balanced", ud.url)
 
-        ud.cloneflags = "-s -n"
+        ud.cloneflags = "-n"
+        if not ud.noshared:
+            ud.cloneflags += " -s"
         if ud.bareclone:
             ud.cloneflags += " --mirror"
 
